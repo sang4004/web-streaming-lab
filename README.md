@@ -53,8 +53,3 @@ npm run preview    # 프로덕션 빌드 미리보기
 - `/hls`: HLS.js 실습
 - `/webrtc`: WebRTC getUserMedia 실습
 - 그 외 경로: 페이지를 찾을 수 없음
-
-현재 미디어 실습은 화면 틀만 있으며, 카메라 버튼은 로직 구현 전까지 비활성화되어 있습니다.
-
-개발 서버와 `npm run preview`에서는 실습 경로로 직접 접속하거나 새로고침할 수 있습니다.
-배포 시에는 `/hls`, `/webrtc` 등의 요청에도 `index.html`을 제공하도록 서버의 SPA fallback을 설정해야 합니다.
