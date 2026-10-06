@@ -58,24 +58,59 @@ h1 {
 }
 
 .lab-card {
+  display: block;
   min-height: 230px;
   padding: 28px;
   border: 1px solid #242a32;
   border-radius: 18px;
   background: #11151a;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
 }
 
+.lab-card:hover {
+  border-color: #73e2a7;
+}
 
-h2 {
+.lab-card:focus-visible,
+.back-button:focus-visible {
+  outline: 2px solid #73e2a7;
+  outline-offset: 4px;
+}
+
+.lab-title {
+  display: block;
   margin: 28px 0 10px;
   font-size: 1.75rem;
+  font-weight: 700;
 }
 
-.lab-card p {
+.lab-description {
+  display: block;
   min-height: 52px;
   margin: 0 0 24px;
   color: #9ca8b7;
   line-height: 1.6;
+}
+
+.back-button {
+  display: inline-block;
+  margin-bottom: 32px;
+  padding: 10px 16px;
+  border: 1px solid #242a32;
+  border-radius: 8px;
+  background: #11151a;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.shell:focus {
+  outline: none;
 }
 
 code {
