@@ -1,0 +1,186 @@
+.get-user-media {
+  --camera-accent: #73e2a7;
+  --camera-border: #242d36;
+  --camera-muted: #a1adba;
+
+  width: min(100%, 800px);
+}
+
+.get-user-media__header {
+  margin-bottom: 32px;
+}
+
+.get-user-media__eyebrow {
+  margin: 0 0 12px;
+  color: var(--camera-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.get-user-media h1 {
+  font-size: clamp(1.8rem, 5vw, 3.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+}
+
+.get-user-media__description {
+  margin: 16px 0 0;
+  color: var(--camera-muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.get-user-media__preview {
+  overflow: hidden;
+  border: 1px solid var(--camera-border);
+  border-radius: 18px;
+  background: #10151a;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 20%);
+}
+
+.get-user-media__preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--camera-border);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.get-user-media__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  color: var(--camera-muted);
+  font-size: 0.75rem;
+}
+
+.get-user-media__status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #798694;
+  content: "";
+}
+
+.get-user-media__status[data-status="idle"]::before {
+  background: #798694;
+}
+
+.get-user-media__status[data-status="opening"]::before {
+  background: #f2c66d;
+}
+
+.get-user-media__status[data-status="active"]::before {
+  background: var(--camera-accent);
+}
+
+.get-user-media__video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(115 226 167 / 5%), transparent 65%),
+    #090c10;
+  /* 카메라 좌우 반전 */
+  transform: scaleX(-1);
+}
+
+.get-user-media__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.get-user-media__button {
+  min-height: 44px;
+  padding: 12px 22px;
+  border: 1px solid #35424f;
+  border-radius: 10px;
+  color: #e8edf3;
+  background: #161d25;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.get-user-media__button--primary {
+  border-color: var(--camera-accent);
+  color: #0b2115;
+  background: var(--camera-accent);
+}
+
+.get-user-media__button:not(:disabled):hover {
+  border-color: var(--camera-accent);
+  background: #202d37;
+}
+
+.get-user-media__button--primary:not(:disabled):hover {
+  background: #95edbf;
+}
+
+.get-user-media__button:focus-visible {
+  outline: 2px solid var(--camera-accent);
+  outline-offset: 4px;
+}
+
+.get-user-media__button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.get-user-media__notice {
+  margin: 16px 0 0;
+  color: var(--camera-muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.get-user-media__error {
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  border: 1px solid rgb(255 142 142 / 25%);
+  border-radius: 10px;
+  color: #ffb2b2;
+  background: rgb(255 142 142 / 7%);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.get-user-media__error:empty {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .get-user-media__header {
+    margin-bottom: 24px;
+  }
+
+  .get-user-media__preview-header {
+    padding: 14px;
+  }
+
+  .get-user-media__button {
+    flex: 1;
+    padding-inline: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .get-user-media__button {
+    transition: none;
+  }
+}
