@@ -68,16 +68,41 @@
   content: "";
 }
 
+/* 카메라 상태 준비 중 */
 .get-user-media__status[data-status="idle"]::before {
   background: #798694;
 }
 
+/* 카메라 상태 대기 중 */
 .get-user-media__status[data-status="opening"]::before {
   background: #f2c66d;
 }
 
+/* 카메라 상태 활성화 */
 .get-user-media__status[data-status="active"]::before {
   background: var(--camera-accent);
+}
+
+/* WebRTC 수신 대기 또는 연결 종료 */
+.get-user-media__status[data-status="new"]::before,
+.get-user-media__status[data-status="closed"]::before {
+  background: #798694;
+}
+
+/* WebRTC 연결 중 또는 연결 끊김 */
+.get-user-media__status[data-status="connecting"]::before,
+.get-user-media__status[data-status="disconnected"]::before {
+  background: #f2c66d;
+}
+
+/* WebRTC 연결 성공 */
+.get-user-media__status[data-status="connected"]::before {
+  background: var(--camera-accent);
+}
+
+/* WebRTC 연결 실패 */
+.get-user-media__status[data-status="failed"]::before {
+  background: #ff8e8e;
 }
 
 .get-user-media__video {
@@ -162,6 +187,16 @@
 
 .get-user-media__error:empty {
   display: none;
+}
+
+/* 미리보기 패널 사이 간격 */
+.get-user-media__preview + .get-user-media__preview {
+  margin-top: 20px;
+}
+
+/* 수신 영상은 원본 방향으로 표시 */
+.get-user-media__video--remote {
+  transform: none;
 }
 
 @media (max-width: 480px) {
