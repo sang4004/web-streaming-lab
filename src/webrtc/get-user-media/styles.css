@@ -199,6 +199,96 @@
   transform: none;
 }
 
+/* 수신 영상 위에 안내 화면을 배치하기 위한 기준 영역 */
+.get-user-media__remote-stage {
+  position: relative;
+}
+
+.get-user-media__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 40%, rgb(115 226 167 / 12%), transparent 65%),
+    #10151a;
+}
+
+.get-user-media__avatar {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgb(115 226 167 / 40%);
+  border-radius: 50%;
+  color: var(--camera-accent);
+  background: #182c23;
+  font-size: 1.5rem;
+  font-weight: 700;
+  position: relative;
+  box-shadow: 0 0 20px rgb(115 226 167 / 8%);
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+/* 별도 HTML 요소 없이 아바타 주변에 링 두 개 생성 */
+.get-user-media__avatar::before,
+.get-user-media__avatar::after {
+  position: absolute;
+  inset: -6px;
+  border: 1px solid rgb(115 226 167 / 45%);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  content: "";
+  animation: get-user-media-avatar-ring 3.6s ease-out infinite;
+}
+
+.get-user-media__placeholder-title {
+  margin: 0;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  font-weight: 600;
+}
+
+.get-user-media__placeholder-description {
+  margin: 0;
+  color: var(--camera-muted);
+  font-size: 0.8rem;
+}
+
+/* 두 번째 링은 시간차를 두고 시작 */
+.get-user-media__avatar::after {
+  animation-delay: 1.8s;
+}
+
+@keyframes get-user-media-avatar-ring {
+  from {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* 마우스를 사용할 수 있는 환경에서만 호버 효과 적용 */
+@media (hover: hover) and (pointer: fine) {
+  .get-user-media__placeholder:hover .get-user-media__avatar {
+    border-color: var(--camera-accent);
+    background: #1e3a2b;
+    box-shadow: 0 0 32px rgb(115 226 167 / 22%);
+  }
+}
+
 @media (max-width: 480px) {
   .get-user-media__header {
     margin-bottom: 24px;
@@ -215,7 +305,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .get-user-media__button {
+  .get-user-media__button,
+  .get-user-media__avatar {
     transition: none;
+  }
+
+  .get-user-media__avatar::before,
+  .get-user-media__avatar::after {
+    animation: none;
+    opacity: 0;
   }
 }

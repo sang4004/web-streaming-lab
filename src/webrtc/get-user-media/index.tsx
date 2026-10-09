@@ -22,6 +22,8 @@ const GetUserMedia = () => {
   const localPeerRef = useRef<RTCPeerConnection | null>(null);
   // 수신 PeerConnection을 보관하는 ref
   const remotePeerRef = useRef<RTCPeerConnection | null>(null);
+  // 카메라 영상의 WebRTC 송신 객체 보관
+  const videoSenderRef = useRef<RTCRtpSender | null>(null);
 
   // 카메라 상태 관리
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
@@ -30,6 +32,10 @@ const GetUserMedia = () => {
   // WebRTC 연결 상태 관리
   const [connectionState, setConnectionState] =
     useState<RTCPeerConnectionState>("new");
+  // 영상 송출 여부
+  const [isVideoSending, setIsVideoSending] = useState(false);
+  // 송출 전환 중 중복 클릭 방지용
+  const [isVideoSwitching, setIsVideoSwitching] = useState(false);
 
   // 카메라 상태에 따른 표시 문구
   const cameraStatusText = {
@@ -48,6 +54,10 @@ const GetUserMedia = () => {
     closed: "연결 종료",
   }[connectionState];
 
+  // 연결은 유지되지만 영상 송출을 중지한 경우에만 안내 화면 표시
+  const isRemoteVideoPaused =
+    connectionState === "connected" && !isVideoSending;
+
   // 페이지 이탈 시 WebRTC 연결과 카메라 스트림을 정리
   useEffect(() => {
     return () => {
@@ -58,6 +68,7 @@ const GetUserMedia = () => {
       // 컴포넌트 종료 시 ref 초기화
       localPeerRef.current = null;
       remotePeerRef.current = null;
+      videoSenderRef.current = null;
 
       // 컴포넌트 종료 시 카메라 스트림 종료
       stopCameraStream(streamRef.current);
@@ -72,6 +83,11 @@ const GetUserMedia = () => {
 
     localPeerRef.current = null;
     remotePeerRef.current = null;
+    videoSenderRef.current = null;
+
+    // 연결 종료에 따른 송출 상태 초기화
+    setIsVideoSending(false);
+    setIsVideoSwitching(false);
 
     // 수신 영상만 비우기
     if (remoteVideoRef.current) {
@@ -184,7 +200,12 @@ const GetUserMedia = () => {
 
       // 송신 쪽에 카메라 트랙 등록
       stream.getTracks().forEach((track) => {
-        localPeer.addTrack(track, stream);
+        const sender = localPeer.addTrack(track, stream);
+
+        if (track.kind === "video") {
+          videoSenderRef.current = sender;
+          setIsVideoSending(true);
+        }
       });
 
       // 송신 쪽에서 연결 제안 생성
@@ -216,6 +237,11 @@ const GetUserMedia = () => {
 
       localPeerRef.current = null;
       remotePeerRef.current = null;
+      videoSenderRef.current = null;
+
+      // 현재 연결의 실패일 때만 화면 상태 초기화
+      setIsVideoSending(false);
+      setIsVideoSwitching(false);
 
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = null;
@@ -224,6 +250,51 @@ const GetUserMedia = () => {
       console.error("WebRTC 협상 실패:", error);
       setErrorMessage("WebRTC 연결 협상에 실패했습니다. 다시 시도해주세요.");
       setConnectionState("new");
+    }
+  };
+
+  // 카메라 영상 송출 켜기/끄기
+  const handleToggleVideoSending = async () => {
+    const sender = videoSenderRef.current;
+    const [videoTrack] = streamRef.current?.getVideoTracks() ?? [];
+
+    if (
+      connectionState !== "connected" ||
+      !sender ||
+      !videoTrack ||
+      isVideoSwitching
+    ) {
+      return;
+    }
+
+    // 송신기에 트랙이 없으면 재개하고, 있으면 중지
+    const isNextVideoSending = sender.track === null;
+
+    setErrorMessage("");
+    setIsVideoSwitching(true);
+
+    try {
+      // 송출 상태 전환
+      await sender.replaceTrack(isNextVideoSending ? videoTrack : null);
+
+      // 기다리는 동안 연결이 종료되거나 교체됐다면 무시
+      if (videoSenderRef.current !== sender) {
+        return;
+      }
+
+      setIsVideoSending(isNextVideoSending);
+    } catch (error) {
+      if (videoSenderRef.current !== sender) {
+        return;
+      }
+
+      console.error("영상 송출 전환 실패:", error);
+      setErrorMessage("영상 송출 상태를 변경하지 못했습니다.");
+    } finally {
+      // 이전 요청이 새 연결의 처리 상태를 덮어쓰지 않도록 확인
+      if (videoSenderRef.current === sender) {
+        setIsVideoSwitching(false);
+      }
     }
   };
 
@@ -274,15 +345,30 @@ const GetUserMedia = () => {
           </span>
         </div>
 
-        <video
-          ref={remoteVideoRef}
-          className="get-user-media__video get-user-media__video--remote"
-          id="remote-video"
-          aria-label="WebRTC로 받은 영상"
-          autoPlay
-          playsInline
-          muted
-        />
+        <div className="get-user-media__remote-stage">
+          <video
+            ref={remoteVideoRef}
+            className="get-user-media__video get-user-media__video--remote"
+            id="remote-video"
+            aria-label="WebRTC로 받은 영상"
+            aria-hidden={isRemoteVideoPaused}
+            autoPlay
+            playsInline
+            muted
+          />
+
+          {isRemoteVideoPaused && (
+            <div className="get-user-media__placeholder">
+              <div className="get-user-media__avatar">W</div>
+              <p className="get-user-media__placeholder-title">
+                영상 송출이 일시중지됐어요
+              </p>
+              <p className="get-user-media__placeholder-description">
+                연결은 유지되고 있어요
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="get-user-media__controls">
@@ -319,6 +405,19 @@ const GetUserMedia = () => {
           disabled={connectionState === "new"}
         >
           WebRTC 연결 종료
+        </button>
+
+        <button
+          className="get-user-media__button"
+          type="button"
+          onClick={handleToggleVideoSending}
+          disabled={connectionState !== "connected" || isVideoSwitching}
+        >
+          {isVideoSwitching
+            ? "변경 중..."
+            : isVideoSending
+              ? "송출 중지"
+              : "송출 재개"}
         </button>
       </div>
 
