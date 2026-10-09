@@ -1,8 +1,9 @@
-import { Route, Routes } from 'react-router'
-import HomePage from '../pages/home'
-import HlsPage from '../pages/hls'
-import WebRtcPage from '../pages/webrtc'
-import NotFoundPage from '../pages/not-found'
+import { Route, Routes } from "react-router";
+
+import HlsPage from "../pages/hls";
+import HomePage from "../pages/home";
+import NotFoundPage from "../pages/not-found";
+import WebRtcPage from "../pages/webrtc";
 
 const AppRoutes = () => {
   return (
@@ -12,7 +13,7 @@ const AppRoutes = () => {
       <Route path="/webrtc" element={<WebRtcPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
-  )
-}
+  );
+};
 
-export default AppRoutes
+export default AppRoutes;

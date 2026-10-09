@@ -5,15 +5,17 @@ export const forwardIceCandidates = (
   source: RTCPeerConnection,
   target: RTCPeerConnection,
 ) => {
-  const pending: RTCIceCandidate[] = [];
-  let ready = false;
-  let delivery = Promise.resolve();
+  const pendingCandidates: RTCIceCandidate[] = [];
+  let isReady = false;
+  let candidateDelivery = Promise.resolve();
 
-  const send = (candidate: RTCIceCandidate) => {
+  const sendCandidate = (candidate: RTCIceCandidate) => {
     // 후보를 생성된 순서대로 전달
-    delivery = delivery
+    candidateDelivery = candidateDelivery
       .then(async () => {
-        if (target.signalingState === "closed") return;
+        if (target.signalingState === "closed") {
+          return;
+        }
 
         await target.addIceCandidate(candidate);
       })
@@ -25,18 +27,20 @@ export const forwardIceCandidates = (
   };
 
   source.addEventListener("icecandidate", (event) => {
-    if (!event.candidate) return;
+    if (!event.candidate) {
+      return;
+    }
 
-    if (ready) {
-      send(event.candidate);
+    if (isReady) {
+      sendCandidate(event.candidate);
     } else {
-      pending.push(event.candidate);
+      pendingCandidates.push(event.candidate);
     }
   });
 
   // 상대 SDP 등록 후 호출할 함수 반환
   return () => {
-    ready = true;
-    pending.splice(0).forEach(send);
+    isReady = true;
+    pendingCandidates.splice(0).forEach(sendCandidate);
   };
 };

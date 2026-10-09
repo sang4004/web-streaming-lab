@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import "./styles.css";
+
 import {
   getCameraErrorMessage,
   getCameraStream,
@@ -7,12 +7,16 @@ import {
 } from "./get-user-media";
 import { forwardIceCandidates } from "./peer-connection";
 
+import "./styles.css";
+
+type CameraStatus = "idle" | "opening" | "active";
+
 const GetUserMedia = () => {
-  // 카메라 영상 랜더링을 위한 video ref
+  // 카메라 영상을 렌더링할 video 요소
   const videoRef = useRef<HTMLVideoElement>(null);
   // 카메라 스트림을 저장하기 위한 ref
   const streamRef = useRef<MediaStream | null>(null);
-  // 원격 영상 랜더링을 위한 video ref
+  // WebRTC 수신 영상을 렌더링할 video 요소
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   // 송신 PeerConnection을 보관하는 ref
   const localPeerRef = useRef<RTCPeerConnection | null>(null);
@@ -20,19 +24,19 @@ const GetUserMedia = () => {
   const remotePeerRef = useRef<RTCPeerConnection | null>(null);
 
   // 카메라 상태 관리
-  const [status, setStatus] = useState<"idle" | "opening" | "active">("idle");
+  const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
   // 카메라 요청 및 WebRTC 협상 오류 메시지 관리
   const [errorMessage, setErrorMessage] = useState("");
   // WebRTC 연결 상태 관리
   const [connectionState, setConnectionState] =
     useState<RTCPeerConnectionState>("new");
 
-  // 연결 상태에 따른 상태 텍스트
-  const statusText = {
+  // 카메라 상태에 따른 표시 문구
+  const cameraStatusText = {
     idle: "연결 대기",
     opening: "카메라 연결 중",
     active: "카메라 켜짐",
-  }[status];
+  }[cameraStatus];
 
   // WebRTC 연결 상태에 따른 표시 문구
   const connectionStatusText = {
@@ -44,7 +48,7 @@ const GetUserMedia = () => {
     closed: "연결 종료",
   }[connectionState];
 
-  // 정리 함수에서 WebRTC 연결과 카메라 스트림 종료
+  // 페이지 이탈 시 WebRTC 연결과 카메라 스트림을 정리
   useEffect(() => {
     return () => {
       // 컴포넌트 종료 시 WebRTC 연결 종료
@@ -61,13 +65,32 @@ const GetUserMedia = () => {
     };
   }, []);
 
+  // 카메라는 유지하고 WebRTC 연결만 종료
+  const handleStopConnection = () => {
+    localPeerRef.current?.close();
+    remotePeerRef.current?.close();
+
+    localPeerRef.current = null;
+    remotePeerRef.current = null;
+
+    // 수신 영상만 비우기
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    // 다시 연결할 수 있도록 대기 상태로 초기화
+    setConnectionState("new");
+  };
+
   // 카메라 열기 버튼 클릭 시 카메라 스트림 시작
   const handleOpenCamera = async () => {
-    if (status !== "idle" || streamRef.current) return;
+    if (cameraStatus !== "idle" || streamRef.current) {
+      return;
+    }
 
     // 새 요청을 시작할 때 이전 오류 제거
     setErrorMessage("");
-    setStatus("opening");
+    setCameraStatus("opening");
 
     try {
       const stream = await getCameraStream();
@@ -82,19 +105,21 @@ const GetUserMedia = () => {
       streamRef.current = stream;
       video.srcObject = stream;
 
-      // 연결 상태를 활성화로 변경
-      setStatus("active");
+      // WebRTC 연결 상태와 별개로 카메라 상태를 활성화
+      setCameraStatus("active");
     } catch (error) {
       // 카메라 요청 실패 시 에러 메시지 표시
       console.error("카메라 요청 실패:", error);
       setErrorMessage(getCameraErrorMessage(error));
-      setStatus("idle");
+      setCameraStatus("idle");
     }
   };
 
-  // 카메라 닫기 버튼 클릭 시 카메라 스트림 종료
+  // WebRTC 연결과 카메라 스트림을 모두 종료
   const handleCloseCamera = () => {
-    if (status !== "active" || !streamRef.current) return;
+    if (cameraStatus !== "active" || !streamRef.current) {
+      return;
+    }
 
     handleStopConnection();
 
@@ -105,7 +130,7 @@ const GetUserMedia = () => {
       videoRef.current.srcObject = null;
     }
 
-    setStatus("idle");
+    setCameraStatus("idle");
   };
 
   // WebRTC 연결 시작
@@ -113,7 +138,9 @@ const GetUserMedia = () => {
     const stream = streamRef.current;
 
     // 카메라가 없거나 이미 연결 객체를 만들었다면 종료
-    if (!stream || localPeerRef.current || remotePeerRef.current) return;
+    if (!stream || localPeerRef.current || remotePeerRef.current) {
+      return;
+    }
 
     // 실제로 새 연결을 시작할 때 이전 오류 제거
     setErrorMessage("");
@@ -132,7 +159,9 @@ const GetUserMedia = () => {
     try {
       // 수신 쪽에서 트랙을 받으면 영상 요소에 연결
       remotePeer.addEventListener("track", (event) => {
-        if (remotePeerRef.current !== remotePeer) return;
+        if (remotePeerRef.current !== remotePeer) {
+          return;
+        }
 
         const [receivedStream] = event.streams;
         const video = remoteVideoRef.current;
@@ -145,7 +174,9 @@ const GetUserMedia = () => {
       // 수신 연결의 상태가 바뀌면 화면에 반영
       remotePeer.addEventListener("connectionstatechange", () => {
         // 이미 종료되거나 교체된 연결의 이벤트는 무시
-        if (remotePeerRef.current !== remotePeer) return;
+        if (remotePeerRef.current !== remotePeer) {
+          return;
+        }
 
         setConnectionState(remotePeer.connectionState);
         console.log("수신 WebRTC 연결 상태:", remotePeer.connectionState);
@@ -179,7 +210,9 @@ const GetUserMedia = () => {
       remotePeer.close();
 
       // 페이지 이탈이나 다른 연결로 교체된 경우 종료
-      if (localPeerRef.current !== localPeer) return;
+      if (localPeerRef.current !== localPeer) {
+        return;
+      }
 
       localPeerRef.current = null;
       remotePeerRef.current = null;
@@ -192,23 +225,6 @@ const GetUserMedia = () => {
       setErrorMessage("WebRTC 연결 협상에 실패했습니다. 다시 시도해주세요.");
       setConnectionState("new");
     }
-  };
-
-  // 카메라는 유지하고 WebRTC 연결만 종료
-  const handleStopConnection = () => {
-    localPeerRef.current?.close();
-    remotePeerRef.current?.close();
-
-    localPeerRef.current = null;
-    remotePeerRef.current = null;
-
-    // 수신 영상만 비우기
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
-    }
-
-    // 다시 연결할 수 있도록 대기 상태로 초기화
-    setConnectionState("new");
   };
 
   return (
@@ -227,10 +243,10 @@ const GetUserMedia = () => {
           <span>카메라 미리보기</span>
           <span
             className="get-user-media__status"
-            data-status={status}
+            data-status={cameraStatus}
             role="status"
           >
-            {statusText}
+            {cameraStatusText}
           </span>
         </div>
 
@@ -275,7 +291,7 @@ const GetUserMedia = () => {
           id="open-camera"
           type="button"
           onClick={handleOpenCamera}
-          disabled={status !== "idle"}
+          disabled={cameraStatus !== "idle"}
         >
           카메라 열기
         </button>
@@ -284,7 +300,7 @@ const GetUserMedia = () => {
           id="close-camera"
           type="button"
           onClick={handleCloseCamera}
-          disabled={status !== "active"}
+          disabled={cameraStatus !== "active"}
         >
           카메라 닫기
         </button>
@@ -292,7 +308,7 @@ const GetUserMedia = () => {
           className="get-user-media__button"
           type="button"
           onClick={handleStartConnection}
-          disabled={status !== "active" || connectionState !== "new"}
+          disabled={cameraStatus !== "active" || connectionState !== "new"}
         >
           WebRTC 연결 준비
         </button>

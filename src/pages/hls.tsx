@@ -1,4 +1,4 @@
-import PageLayout from '../components/PageLayout'
+import PageLayout from "../components/PageLayout";
 
 const HlsPage = () => {
   return (
@@ -8,7 +8,7 @@ const HlsPage = () => {
         <p className="description">플레이어 실습을 준비 중입니다.</p>
       </section>
     </PageLayout>
-  )
-}
+  );
+};
 
-export default HlsPage
+export default HlsPage;

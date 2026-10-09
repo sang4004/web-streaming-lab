@@ -68,17 +68,17 @@
   content: "";
 }
 
-/* 카메라 상태 준비 중 */
+/* 카메라 연결 대기 */
 .get-user-media__status[data-status="idle"]::before {
   background: #798694;
 }
 
-/* 카메라 상태 대기 중 */
+/* 카메라 연결 중 */
 .get-user-media__status[data-status="opening"]::before {
   background: #f2c66d;
 }
 
-/* 카메라 상태 활성화 */
+/* 카메라 활성 상태 */
 .get-user-media__status[data-status="active"]::before {
   background: var(--camera-accent);
 }

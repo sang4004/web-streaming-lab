@@ -1,16 +1,18 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App'
-import './styles.css'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-const app = document.querySelector<HTMLDivElement>('#app')
+import App from "./App";
 
-if (!app) {
-  throw new Error('앱을 표시할 요소를 찾지 못했습니다.')
+import "./styles.css";
+
+const appElement = document.querySelector<HTMLDivElement>("#app");
+
+if (!appElement) {
+  throw new Error("앱을 표시할 요소를 찾지 못했습니다.");
 }
 
-createRoot(app).render(
+createRoot(appElement).render(
   <StrictMode>
     <App />
   </StrictMode>,
-)
+);
