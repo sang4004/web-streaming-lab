@@ -33,8 +33,8 @@ npm run preview    # 프로덕션 빌드 미리보기
 │   ├── components/ # 공통 페이지 레이아웃
 │   ├── pages/      # 함수형 페이지 컴포넌트 (.tsx)
 │   ├── router/     # 페이지 경로 등록
-│   ├── hls/       # HLS.js 실습
-│   ├── webrtc/    # WebRTC 실습
+│   ├── hls/        # HLS.js 실습
+│   ├── webrtc/     # WebRTC 실습
 │   ├── App.tsx    # BrowserRouter 연결
 │   ├── main.tsx   # React 앱 시작
 │   └── styles.css
@@ -53,3 +53,7 @@ npm run preview    # 프로덕션 빌드 미리보기
 - `/hls`: HLS.js 실습
 - `/webrtc`: WebRTC getUserMedia 실습
 - 그 외 경로: 페이지를 찾을 수 없음
+
+## 코드 컨벤션
+
+동작 원리를 이해할 수 있는 명확한 이름과 읽기 쉬운 코드를 우선
